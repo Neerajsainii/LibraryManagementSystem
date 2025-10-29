@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Books Catalog - Library Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .book-card {
+        height: 100%;
+        transition: transform 0.2s;
+    }
+    .book-card:hover {
+        transform: translateY(-5px);
+    }
+    .book-cover {
+        height: 250px;
+        object-fit: cover;
+    }
+    .book-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2>Books Catalog</h2>
+    </div>
+    <div class="col-md-6">
+        <form class="d-flex" method="GET">
+            <input type="text" name="q" class="form-control me-2" placeholder="Search books..." value="{{ request.GET.q }}">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <!-- Filters -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET">
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        {% for category in categories %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="category" value="{{ category.id }}"
+                                   id="category{{ category.id }}" {% if category.id|stringformat:"i" in request.GET.getlist('category') %}checked{% endif %}>
+                            <label class="form-check-label" for="category{{ category.id }}">
+                                {{ category.name }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Availability</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="available" value="true"
+                                   id="availableOnly" {% if request.GET.available %}checked{% endif %}>
+                            <label class="form-check-label" for="availableOnly">
+                                Available Only
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <!-- Books Grid -->
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for book in books %}
+            <div class="col">
+                <div class="card h-100 book-card">
+                    {% if book.is_available %}
+                    <span class="badge bg-success book-status">Available</span>
+                    {% else %}
+                    <span class="badge bg-danger book-status">Checked Out</span>
+                    {% endif %}
+                    
+                    {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" class="card-img-top book-cover" alt="{{ book.title }}">
+                    {% else %}
+                    <img src="{% static 'images/default-book-cover.jpg' %}" class="card-img-top book-cover" alt="Default Cover">
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">{{ book.title }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ book.author }}</h6>
+                        <p class="card-text">{{ book.description|truncatewords:20 }}</p>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <a href="{% url 'book_detail' book.id %}" class="btn btn-primary">View Details</a>
+                        {% if book.is_available %}
+                        <a href="{% url 'borrow_book' book.id %}" class="btn btn-success">Borrow</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No books found matching your criteria.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if books.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if books.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ books.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Previous</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+                {% endif %}
+
+                {% for num in books.paginator.page_range %}
+                    {% if books.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if books.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ books.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Next</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Automatically submit form when checkboxes change
+    $('.form-check-input').change(function() {
+        $(this).closest('form').submit();
+    });
+});
+</script>
+{% endblock %}

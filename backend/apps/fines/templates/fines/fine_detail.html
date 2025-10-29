@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Fine Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Fine Details</h2>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Book:</dt>
+                        <dd class="col-sm-8">{{ fine.loan.book.title }}</dd>
+                        
+                        <dt class="col-sm-4">Amount:</dt>
+                        <dd class="col-sm-8">${{ fine.amount|floatformat:2 }}</dd>
+                        
+                        <dt class="col-sm-4">Date:</dt>
+                        <dd class="col-sm-8">{{ fine.created_at|date:"F d, Y" }}</dd>
+                        
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                            {% if fine.status == 'PAID' %}
+                                <span class="badge badge-success">Paid</span>
+                            {% else %}
+                                <span class="badge badge-warning">Pending</span>
+                            {% endif %}
+                        </dd>
+                        
+                        <dt class="col-sm-4">Reason:</dt>
+                        <dd class="col-sm-8">{{ fine.reason }}</dd>
+                    </dl>
+
+                    {% if fine.status == 'PENDING' %}
+                        <div class="text-center mt-4">
+                            <button class="btn btn-primary pay-fine-btn" 
+                                    data-fine-id="{{ fine.pk }}" 
+                                    data-amount="{{ fine.amount }}"
+                                    data-razorpay-key="{{ razorpay_key }}">
+                                <i class="fas fa-credit-card"></i> Pay Now
+                            </button>
+                        </div>
+                    {% endif %}
+
+                    {% if payments %}
+                        <h3 class="mt-4">Payment History</h3>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Payment ID</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in payments %}
+                                        <tr>
+                                            <td>{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                                            <td>${{ payment.amount|floatformat:2 }}</td>
+                                            <td>
+                                                {% if payment.status == 'SUCCESS' %}
+                                                    <span class="badge badge-success">Success</span>
+                                                {% elif payment.status == 'FAILED' %}
+                                                    <span class="badge badge-danger">Failed</span>
+                                                {% else %}
+                                                    <span class="badge badge-secondary">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    {{ payment.razorpay_payment_id|default:"N/A" }}
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'fines:fine_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Fines
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.querySelectorAll('.pay-fine-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const fineId = this.dataset.fineId;
+        const amount = parseFloat(this.dataset.amount);
+        const key = this.dataset.razorpayKey;
+        
+        fetch(`/api/fines/${fineId}/create_payment/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const options = {
+                key: key,
+                amount: data.amount,
+                currency: "INR",
+                name: "Library Management System",
+                description: "Fine Payment",
+                order_id: data.id,
+                handler: function (response) {
+                    window.location.href = `/fines/payment/success/?payment_id=${response.razorpay_payment_id}`;
+                },
+                prefill: {
+                    email: "{{ request.user.email }}",
+                    contact: "{{ request.user.phone_number|default:'' }}"
+                },
+                theme: {
+                    color: "#3399cc"
+                }
+            };
+            const rzp = new Razorpay(options);
+            rzp.open();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Unable to initiate payment. Please try again.');
+        });
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

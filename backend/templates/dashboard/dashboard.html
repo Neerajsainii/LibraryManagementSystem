@@ -1,0 +1,121 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_content %}
+<h1 class="mb-4">Dashboard</h1>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Total Books</h5>
+                <p class="card-text display-6">{{ total_books }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Available Books</h5>
+                <p class="card-text display-6">{{ available_books }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Active Loans</h5>
+                <p class="card-text display-6">{{ active_loans }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Outstanding Fines</h5>
+                <p class="card-text display-6">${{ outstanding_fines }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overdue Books -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Overdue Books</h5>
+    </div>
+    <div class="card-body">
+        {% if overdue_loans %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Due Date</th>
+                        <th>Days Overdue</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in overdue_loans %}
+                    <tr>
+                        <td>{{ loan.book.title }}</td>
+                        <td>{{ loan.due_date|date:"M d, Y" }}</td>
+                        <td class="text-danger">{{ loan.days_overdue }} days</td>
+                        <td>
+                            <a href="{% url 'loans:return_loan' loan.id %}" class="btn btn-sm btn-primary">Return</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="mb-0">No overdue books.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Loans -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Recent Loans</h5>
+    </div>
+    <div class="card-body">
+        {% if recent_loans %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Borrowed Date</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in recent_loans %}
+                    <tr>
+                        <td>{{ loan.book.title }}</td>
+                        <td>{{ loan.borrowed_date|date:"M d, Y" }}</td>
+                        <td>{{ loan.due_date|date:"M d, Y" }}</td>
+                        <td>
+                            {% if loan.is_overdue %}
+                            <span class="badge bg-danger">Overdue</span>
+                            {% elif loan.returned_date %}
+                            <span class="badge bg-success">Returned</span>
+                            {% else %}
+                            <span class="badge bg-primary">Active</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="mb-0">No recent loans.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Fines{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Your Fines</h1>
+
+    {% if total_unpaid > 0 %}
+        <div class="alert alert-warning">
+            <h4 class="alert-heading">
+                <i class="fas fa-exclamation-triangle"></i> Outstanding Fines
+            </h4>
+            <p>You have total unpaid fines of <strong>${{ total_unpaid|floatformat:2 }}</strong></p>
+        </div>
+    {% endif %}
+
+    {% if fines %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Book</th>
+                        <th>Reason</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fine in fines %}
+                        <tr>
+                            <td>{{ fine.created_at|date:"M d, Y" }}</td>
+                            <td>{{ fine.loan.book.title }}</td>
+                            <td>{{ fine.reason }}</td>
+                            <td>${{ fine.amount|floatformat:2 }}</td>
+                            <td>
+                                {% if fine.status == 'PAID' %}
+                                    <span class="badge badge-success">Paid</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'fines:fine_detail' fine.pk %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </a>
+                                {% if fine.status == 'PENDING' %}
+                                    <button class="btn btn-sm btn-primary pay-fine-btn" 
+                                            data-fine-id="{{ fine.pk }}" 
+                                            data-amount="{{ fine.amount }}"
+                                            data-razorpay-key="{{ razorpay_key }}">
+                                        <i class="fas fa-credit-card"></i> Pay Now
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-check-circle"></i> You have no fines.
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.querySelectorAll('.pay-fine-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const fineId = this.dataset.fineId;
+        const amount = parseFloat(this.dataset.amount);
+        const key = this.dataset.razorpayKey;
+        
+        fetch(`/api/fines/${fineId}/create_payment/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const options = {
+                key: key,
+                amount: data.amount,
+                currency: "INR",
+                name: "Library Management System",
+                description: "Fine Payment",
+                order_id: data.id,
+                handler: function (response) {
+                    window.location.href = `/fines/payment/success/?payment_id=${response.razorpay_payment_id}`;
+                },
+                prefill: {
+                    email: "{{ request.user.email }}",
+                    contact: "{{ request.user.phone_number|default:'' }}"
+                },
+                theme: {
+                    color: "#3399cc"
+                }
+            };
+            const rzp = new Razorpay(options);
+            rzp.open();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Unable to initiate payment. Please try again.');
+        });
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}My Loans - Library Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .loan-card {
+        transition: transform 0.2s;
+    }
+    .loan-card:hover {
+        transform: translateY(-3px);
+    }
+    .book-cover-small {
+        height: 120px;
+        object-fit: cover;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">My Loans</h2>
+
+<!-- Active Loans -->
+<div class="mb-5">
+    <h3>Active Loans</h3>
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for loan in active_loans %}
+        <div class="col">
+            <div class="card loan-card h-100 {% if loan.is_overdue %}border-danger{% endif %}">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        {% if loan.book.cover_image %}
+                        <img src="{{ loan.book.cover_image.url }}" class="img-fluid book-cover-small rounded-start" alt="{{ loan.book.title }}">
+                        {% else %}
+                        <img src="{% static 'images/default-book-cover.jpg' %}" class="img-fluid book-cover-small rounded-start" alt="Default Cover">
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ loan.book.title }}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">Borrowed on {{ loan.borrowed_date|date:"F d, Y" }}</small><br>
+                                <small class="{% if loan.is_overdue %}text-danger{% else %}text-muted{% endif %}">
+                                    Due on {{ loan.due_date|date:"F d, Y" }}
+                                </small>
+                            </p>
+                            {% if loan.is_overdue %}
+                            <div class="alert alert-danger py-1 px-2 mb-2">
+                                <small><i class="fas fa-exclamation-circle"></i> Overdue by {{ loan.days_overdue }} days</small>
+                            </div>
+                            {% endif %}
+                            <form method="POST" action="{% url 'return_book' loan.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm">Return Book</button>
+                            </form>
+                            <a href="{% url 'book_detail' loan.book.id %}" class="btn btn-outline-secondary btn-sm">Book Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                You don't have any active loans.
+                <a href="{% url 'book_list' %}" class="alert-link">Browse books</a> to borrow something!
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Loan History -->
+<div>
+    <h3>Loan History</h3>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Book</th>
+                    <th>Borrowed Date</th>
+                    <th>Due Date</th>
+                    <th>Returned Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loan_history %}
+                <tr>
+                    <td>
+                        <a href="{% url 'book_detail' loan.book.id %}" class="text-decoration-none">
+                            {{ loan.book.title }}
+                        </a>
+                    </td>
+                    <td>{{ loan.borrowed_date|date:"M d, Y" }}</td>
+                    <td>{{ loan.due_date|date:"M d, Y" }}</td>
+                    <td>{{ loan.returned_date|date:"M d, Y" }}</td>
+                    <td>
+                        {% if loan.was_returned_late %}
+                        <span class="badge bg-warning">Returned Late</span>
+                        {% else %}
+                        <span class="badge bg-success">Returned On Time</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No loan history available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Process Payment{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Payment Details</h2>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Amount:</dt>
+                        <dd class="col-sm-8">${{ fine.amount|floatformat:2 }}</dd>
+                        
+                        <dt class="col-sm-4">For:</dt>
+                        <dd class="col-sm-8">Fine - {{ fine.reason }}</dd>
+                        
+                        <dt class="col-sm-4">Book:</dt>
+                        <dd class="col-sm-8">{{ fine.loan.book.title }}</dd>
+                    </dl>
+
+                    <div class="text-center mt-4">
+                        <button id="rzp-button" class="btn btn-primary btn-lg">
+                            <i class="fas fa-credit-card"></i> Pay Now
+                        </button>
+                        <a href="{% url 'fines:fine_detail' fine.pk %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.getElementById('rzp-button').onclick = function() {
+    var options = {
+        "key": "{{ razorpay_key }}",
+        "amount": "{{ fine.amount|mul:100|floatformat:0 }}",
+        "currency": "INR",
+        "name": "Library Management System",
+        "description": "Fine Payment",
+        "order_id": "{{ razorpay_order_id }}",
+        "handler": function (response) {
+            window.location.href = "{{ callback_url }}?payment_id=" + response.razorpay_payment_id;
+        },
+        "prefill": {
+            "name": "{{ request.user.get_full_name }}",
+            "email": "{{ request.user.email }}",
+            "contact": "{{ request.user.phone_number|default:'' }}"
+        },
+        "notes": {
+            "fine_id": "{{ fine.pk }}",
+            "reason": "{{ fine.reason }}"
+        },
+        "theme": {
+            "color": "#3399cc"
+        },
+        "modal": {
+            "ondismiss": function() {
+                window.location.href = "{{ cancel_url }}";
+            }
+        }
+    };
+    var rzp = new Razorpay(options);
+    rzp.open();
+    return false;
+};
+</script>
+{% endblock %}

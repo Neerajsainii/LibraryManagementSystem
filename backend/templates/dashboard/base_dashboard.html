@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="list-group">
+                <a href="{% url 'dashboard:dashboard' %}" 
+                   class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                </a>
+                <a href="{% url 'dashboard:statistics' %}"
+                   class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}">
+                    <i class="fas fa-chart-line me-2"></i> Statistics
+                </a>
+                <a href="{% url 'dashboard:book_activities' %}"
+                   class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'book_activities' %}active{% endif %}">
+                    <i class="fas fa-book-reader me-2"></i> Book Activities
+                </a>
+                <a href="{% url 'dashboard:popular_books' %}"
+                   class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'popular_books' %}active{% endif %}">
+                    <i class="fas fa-star me-2"></i> Popular Books
+                </a>
+                {% if user.is_staff %}
+                <a href="{% url 'dashboard:overdue_loans' %}"
+                   class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'overdue_loans' %}active{% endif %}">
+                    <i class="fas fa-clock me-2"></i> Overdue Loans
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            {% block dashboard_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

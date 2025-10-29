@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Loans{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Your Loans</h1>
+    
+    <div class="mb-4">
+        <a href="{% url 'loans:create_loan' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Borrow a Book
+        </a>
+    </div>
+
+    <!-- Active Loans -->
+    <h2>Active Loans</h2>
+    {% if active_loans %}
+        <div class="row">
+            {% for loan in active_loans %}
+                <div class="col-md-6 mb-3">
+                    <div class="card {% if loan.is_overdue %}border-danger{% endif %}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ loan.book.title }}</h5>
+                            <p class="card-text">
+                                <strong>Due Date:</strong> {{ loan.due_date }}<br>
+                                {% if loan.is_overdue %}
+                                    <span class="text-danger">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Overdue!
+                                    </span>
+                                {% endif %}
+                            </p>
+                            <div class="btn-group">
+                                <a href="{% url 'loans:loan_detail' loan.pk %}" class="btn btn-info">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </a>
+                                <a href="{% url 'loans:return_loan' loan.pk %}" class="btn btn-success">
+                                    <i class="fas fa-undo"></i> Return Book
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>You have no active loans.</p>
+    {% endif %}
+
+    <!-- Past Loans -->
+    <h2 class="mt-4">Past Loans</h2>
+    {% if past_loans %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Borrowed Date</th>
+                        <th>Returned Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in past_loans %}
+                        <tr>
+                            <td>{{ loan.book.title }}</td>
+                            <td>{{ loan.loan_date }}</td>
+                            <td>{{ loan.returned_date }}</td>
+                            <td>
+                                <a href="{% url 'loans:loan_detail' loan.pk %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>You have no past loans.</p>
+    {% endif %}
+</div>
+{% endblock %}

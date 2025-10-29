@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Reservations{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Your Reservations</h1>
+    
+    <div class="mb-4">
+        <a href="{% url 'loans:create_reservation' %}" class="btn btn-primary">
+            <i class="fas fa-bookmark"></i> Reserve a Book
+        </a>
+    </div>
+
+    <!-- Active Reservations -->
+    <h2>Active Reservations</h2>
+    {% if active_reservations %}
+        <div class="row">
+            {% for reservation in active_reservations %}
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ reservation.book.title }}</h5>
+                            <p class="card-text">
+                                <strong>Reserved on:</strong> {{ reservation.created_date }}<br>
+                                <strong>Position in Queue:</strong> {{ reservation.position }}
+                            </p>
+                            <form method="post" action="{% url 'loans:cancel_reservation' reservation.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-times"></i> Cancel Reservation
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>You have no active reservations.</p>
+    {% endif %}
+
+    <!-- Past Reservations -->
+    <h2 class="mt-4">Past Reservations</h2>
+    {% if past_reservations %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Reserved Date</th>
+                        <th>Status</th>
+                        <th>Completed Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in past_reservations %}
+                        <tr>
+                            <td>{{ reservation.book.title }}</td>
+                            <td>{{ reservation.created_date }}</td>
+                            <td>
+                                {% if reservation.fulfilled_date %}
+                                    <span class="badge badge-success">Fulfilled</span>
+                                {% elif reservation.cancelled_date %}
+                                    <span class="badge badge-danger">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if reservation.fulfilled_date %}
+                                    {{ reservation.fulfilled_date }}
+                                {% elif reservation.cancelled_date %}
+                                    {{ reservation.cancelled_date }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>You have no past reservations.</p>
+    {% endif %}
+</div>
+{% endblock %}

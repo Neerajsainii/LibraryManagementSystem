@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.title }} - Library Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .book-cover-large {
+        max-height: 400px;
+        object-fit: contain;
+    }
+    .book-info {
+        font-size: 1.1em;
+    }
+    .loan-history {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Book Cover and Basic Info -->
+    <div class="col-md-4">
+        {% if book.cover_image %}
+        <img src="{{ book.cover_image.url }}" class="img-fluid book-cover-large rounded shadow" alt="{{ book.title }}">
+        {% else %}
+        <img src="{% static 'images/default-book-cover.jpg' %}" class="img-fluid book-cover-large rounded shadow" alt="Default Cover">
+        {% endif %}
+        
+        <div class="mt-4">
+            {% if book.is_available %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> Available for Borrowing
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <i class="fas fa-clock"></i> Currently Checked Out
+                <p class="mb-0 small">Expected Return: {{ book.current_loan.due_date|date:"F d, Y" }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if book.is_available %}
+        <button class="btn btn-primary btn-lg w-100" data-bs-toggle="modal" data-bs-target="#borrowModal">
+            <i class="fas fa-book"></i> Borrow Book
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Book Details -->
+    <div class="col-md-8">
+        <h1 class="mb-4">{{ book.title }}</h1>
+        
+        <div class="book-info mb-4">
+            <p><strong>Author:</strong> {{ book.author }}</p>
+            <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+            <p><strong>Category:</strong> {{ book.category.name }}</p>
+            <p><strong>Publisher:</strong> {{ book.publisher }}</p>
+            <p><strong>Publication Year:</strong> {{ book.publication_year }}</p>
+            <p><strong>Available Copies:</strong> {{ book.available_copies }}/{{ book.total_copies }}</p>
+        </div>
+
+        <div class="mb-4">
+            <h3>Description</h3>
+            <p class="lead">{{ book.description }}</p>
+        </div>
+
+        {% if user.is_staff %}
+        <div class="mb-4">
+            <h3>Loan History</h3>
+            <div class="loan-history">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Borrower</th>
+                            <th>Borrowed Date</th>
+                            <th>Due Date</th>
+                            <th>Return Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in book.loans.all %}
+                        <tr>
+                            <td>{{ loan.user.get_full_name }}</td>
+                            <td>{{ loan.borrowed_date|date:"M d, Y" }}</td>
+                            <td>{{ loan.due_date|date:"M d, Y" }}</td>
+                            <td>{{ loan.returned_date|date:"M d, Y"|default:"-" }}</td>
+                            <td>
+                                {% if loan.is_overdue %}
+                                <span class="badge bg-danger">Overdue</span>
+                                {% elif loan.returned_date %}
+                                <span class="badge bg-success">Returned</span>
+                                {% else %}
+                                <span class="badge bg-primary">Active</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No loan history available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Borrow Modal -->
+{% if book.is_available %}
+<div class="modal fade" id="borrowModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Borrow Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'borrow_book' book.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>You are about to borrow "{{ book.title }}"</p>
+                    <p><strong>Due Date:</strong> {{ expected_due_date|date:"F d, Y" }}</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                        <label class="form-check-label" for="agreeTerms">
+                            I agree to return the book by the due date and understand that late returns may incur fines.
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm Borrow</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Enable form submission only when terms are agreed
+    $('#agreeTerms').change(function() {
+        $('.modal-footer button[type="submit"]').prop('disabled', !this.checked);
+    });
+    
+    // Initialize with disabled submit button
+    $('.modal-footer button[type="submit"]').prop('disabled', true);
+});
+</script>
+{% endblock %}

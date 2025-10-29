@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Loan Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Loan Details</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            {% if loan.book.cover_image %}
+                                <img src="{{ loan.book.cover_image.url }}" alt="{{ loan.book.title }}" class="img-fluid mb-3">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h3>{{ loan.book.title }}</h3>
+                            <p class="text-muted">by {{ loan.book.author }}</p>
+                            
+                            <dl class="row">
+                                <dt class="col-sm-4">Loan Date:</dt>
+                                <dd class="col-sm-8">{{ loan.loan_date }}</dd>
+                                
+                                <dt class="col-sm-4">Due Date:</dt>
+                                <dd class="col-sm-8">
+                                    {{ loan.due_date }}
+                                    {% if loan.is_overdue %}
+                                        <span class="badge badge-danger ml-2">Overdue</span>
+                                    {% endif %}
+                                </dd>
+                                
+                                {% if loan.returned_date %}
+                                    <dt class="col-sm-4">Returned Date:</dt>
+                                    <dd class="col-sm-8">{{ loan.returned_date }}</dd>
+                                {% endif %}
+                                
+                                <dt class="col-sm-4">Status:</dt>
+                                <dd class="col-sm-8">
+                                    {% if loan.returned_date %}
+                                        <span class="badge badge-success">Returned</span>
+                                    {% else %}
+                                        <span class="badge badge-primary">Active</span>
+                                    {% endif %}
+                                </dd>
+                            </dl>
+
+                            {% if not loan.returned_date %}
+                                <div class="mt-3">
+                                    <a href="{% url 'loans:return_loan' loan.pk %}" class="btn btn-success">
+                                        <i class="fas fa-undo"></i> Return Book
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if loan.book.description %}
+                        <div class="mt-4">
+                            <h4>Book Description</h4>
+                            <p>{{ loan.book.description }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'loans:loan_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Loans
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
