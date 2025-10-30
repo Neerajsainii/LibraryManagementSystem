@@ -10,7 +10,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/
 lib64/
 parts/
 sdist/
@@ -23,7 +23,7 @@ wheels/
 # Virtual Environment
 venv/
 .env
-.venv
+# .venv
 ENV/
 
 # Django
