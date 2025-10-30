@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Popular Books - Library Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .book-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .book-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .book-cover {
+        height: 200px;
+        object-fit: cover;
+    }
+    .book-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .book-stats {
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+    }
+    .badge-loan-count {
+        background-color: #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Most Popular Books</h2>
+            <p class="text-muted">Discover the most borrowed books in our library.</p>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for book in popular_books %}
+        <div class="col">
+            <div class="card book-card h-100">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        {% if book.cover_image %}
+                        <img src="{{ book.cover_image.url }}" class="img-fluid rounded-start book-cover" alt="{{ book.title }}">
+                        {% else %}
+                        <img src="{% static 'images/default-book-cover.jpg' %}" class="img-fluid rounded-start book-cover" alt="Default Cover">
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body book-info">
+                            <h5 class="card-title">{{ book.title }}</h5>
+                            <p class="card-text text-muted small">
+                                {% for author in book.authors.all %}
+                                    {{ author.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                            <p class="card-text small">
+                                {% if book.description|wordcount > 30 %}
+                                    {{ book.description|truncatewords:30 }}
+                                {% else %}
+                                    {{ book.description }}
+                                {% endif %}
+                            </p>
+                            <div class="book-stats">
+                                <span class="badge bg-primary rounded-pill">
+                                    <i class="fas fa-book-reader me-1"></i> {{ book.loan_count }} loans
+                                </span>
+                                <span class="badge bg-success ms-1">
+                                    {{ book.available_copies }} available
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <a href="{% url 'books:book_detail' book.id %}" class="btn btn-sm btn-outline-primary w-100">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No popular books found.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Any additional JavaScript can go here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any interactive elements here
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Library Statistics - Library Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Library Statistics</h2>
+    
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Monthly Loans</h5>
+                    <h2 class="display-4">{{ monthly_loans }}</h2>
+                    <p class="card-text">Books loaned in the last 30 days</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Popular Books -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Most Popular Books</h5>
+        </div>
+        <div class="card-body">
+            {% if popular_books %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Total Loans</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for book in popular_books %}
+                                <tr>
+                                    <td>{{ book.title }}</td>
+                                    <td>{{ book.author }}</td>
+                                    <td>{{ book.loan_count }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No loan data available.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Category Distribution -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Books by Category</h5>
+        </div>
+        <div class="card-body">
+            {% if category_distribution %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Number of Books</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in category_distribution %}
+                                <tr>
+                                    <td>{{ category.categories__name|default:"Uncategorized" }}</td>
+                                    <td>{{ category.count }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No category data available.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize any JavaScript components if needed
+    console.log('Statistics page loaded');
+});
+</script>
+{% endblock %}

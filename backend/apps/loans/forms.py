@@ -18,7 +18,7 @@ class BookLoanForm(forms.ModelForm):
         user = self.instance.user
         overdue_loans = BookLoan.objects.filter(
             user=user,
-            returned_date__isnull=True,
+            return_date__isnull=True,
             due_date__lt=timezone.now().date()
         )
         if overdue_loans.exists():
@@ -29,7 +29,7 @@ class BookLoanForm(forms.ModelForm):
         # Check if user has reached maximum allowed loans
         active_loans = BookLoan.objects.filter(
             user=user,
-            returned_date__isnull=True
+            return_date__isnull=True
         ).count()
         if active_loans >= 5:  # Maximum 5 books at a time
             raise ValidationError('You have reached the maximum number of allowed loans (5).')
@@ -91,7 +91,7 @@ class ReservationForm(forms.ModelForm):
         active_loan = BookLoan.objects.filter(
             user=user,
             book=book,
-            returned_date__isnull=True
+            return_date__isnull=True
         )
         if active_loan.exists():
             raise ValidationError('You currently have this book checked out.')

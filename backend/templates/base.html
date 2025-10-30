@@ -23,15 +23,15 @@
                 <ul class="navbar-nav me-auto">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'book_list' %}">Books</a>
+                            <a class="nav-link" href="{% url 'books:book_list' %}">Books</a>
                         </li>
                         {% if user.is_staff %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'manage_books' %}">Manage Books</a>
+                            <a class="nav-link" href="{% url 'books:manage_books' %}">Manage Books</a>
                         </li>
                         {% endif %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'my_loans' %}">My Loans</a>
+                            <a class="nav-link" href="{% url 'loans:loan_list' %}">My Loans</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -42,9 +42,9 @@
                                 <i class="fas fa-user"></i> {{ user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
                             </ul>
                         </li>
                     {% else %}

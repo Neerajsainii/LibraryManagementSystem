@@ -19,13 +19,13 @@ from apps.fines.models import Fine
 def loan_list_view(request):
     active_loans = BookLoan.objects.filter(
         user=request.user,
-        returned_date__isnull=True
+        return_date__isnull=True
     ).select_related('book')
     
     past_loans = BookLoan.objects.filter(
         user=request.user,
-        returned_date__isnull=False
-    ).select_related('book').order_by('-returned_date')
+        return_date__isnull=False
+    ).select_related('book').order_by('-return_date')
     
     context = {
         'active_loans': active_loans,
@@ -63,11 +63,11 @@ def return_loan_view(request, pk):
         BookLoan.objects.select_related('book'),
         pk=pk,
         user=request.user,
-        returned_date__isnull=True
+        return_date__isnull=True
     )
     
     if request.method == 'POST':
-        loan.returned_date = timezone.now()
+        loan.return_date = timezone.now()
         loan.save()
         
         # Update book availability

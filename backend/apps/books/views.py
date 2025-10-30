@@ -34,7 +34,7 @@ class BookCopyForm(forms.ModelForm):
 # Web Views
 @login_required
 def book_list_view(request):
-    books = Book.objects.all().select_related('category').prefetch_related('authors')
+    books = Book.objects.all().prefetch_related('authors', 'categories')
     
     # Search functionality
     query = request.GET.get('q')
@@ -79,21 +79,20 @@ def book_list_view(request):
 @login_required
 def book_detail_view(request, pk):
     book = get_object_or_404(
-        Book.objects.select_related('category')
-        .prefetch_related('authors', 'copies', 'reviews'),
+        Book.objects.prefetch_related('authors', 'categories', 'copies'),
         pk=pk
     )
     
     # Get book statistics
     book_stats = {
-        'rating': book.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0,
-        'review_count': book.reviews.count(),
-        'loan_count': book.loans.count(),
+        'rating': 0,  # Reviews not implemented yet
+        'review_count': 0,  # Reviews not implemented yet
+        'loan_count': book.loans.count() if hasattr(book, 'loans') else 0,
     }
     
-    # Get similar books
+    # Get similar books (by shared categories or same authors)
     similar_books = Book.objects.filter(
-        Q(category=book.category) |
+        Q(categories__in=book.categories.all()) |
         Q(authors__in=book.authors.all())
     ).exclude(pk=book.pk).distinct()[:4]
     
@@ -142,7 +141,7 @@ def book_search_view(request):
 # Staff only views
 @user_passes_test(lambda u: u.is_staff)
 def manage_books_view(request):
-    books = Book.objects.all().select_related('category').prefetch_related('authors')
+    books = Book.objects.all().prefetch_related('authors', 'categories')
     return render(request, 'books/manage_books.html', {'books': books})
 
 @user_passes_test(lambda u: u.is_staff)

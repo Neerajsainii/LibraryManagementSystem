@@ -19,24 +19,24 @@ def dashboard_view(request):
     total_books = Book.objects.count()
     available_books = Book.objects.filter(available_copies__gt=0).count()
     total_loans = BookLoan.objects.filter(user=request.user).count()
-    active_loans = BookLoan.objects.filter(user=request.user, returned_date__isnull=True).count()
+    active_loans = BookLoan.objects.filter(user=request.user, return_date__isnull=True).count()
     
     # Get overdue books
     overdue_loans = BookLoan.objects.filter(
         user=request.user,
-        returned_date__isnull=True,
+        return_date__isnull=True,
         due_date__lt=timezone.now()
     ).select_related('book')
     
     # Get recent loans
     recent_loans = BookLoan.objects.filter(
         user=request.user
-    ).select_related('book').order_by('-borrowed_date')[:5]
+    ).select_related('book').order_by('-issue_date')[:5]
     
     # Get outstanding fines
     outstanding_fines = Fine.objects.filter(
         user=request.user,
-        paid_date__isnull=True
+        payment_date__isnull=True
     ).aggregate(total=Sum('amount'))['total'] or 0
     
     context = {
@@ -58,7 +58,7 @@ def statistics_view(request):
     thirty_days_ago = today - timedelta(days=30)
     
     monthly_loans = BookLoan.objects.filter(
-        borrowed_date__gte=thirty_days_ago
+        issue_date__gte=thirty_days_ago
     ).count()
     
     popular_books = Book.objects.annotate(
@@ -67,7 +67,7 @@ def statistics_view(request):
     
     # Category distribution
     category_distribution = Book.objects.values(
-        'category__name'
+        'categories__name'
     ).annotate(count=Count('id')).order_by('-count')
     
     context = {
@@ -83,7 +83,7 @@ def book_activities_view(request):
     # Get recent activities
     recent_activities = BookLoan.objects.select_related(
         'book', 'user'
-    ).order_by('-borrowed_date')[:20]
+    ).order_by('-issue_date')[:20]
     
     context = {
         'recent_activities': recent_activities,
@@ -95,9 +95,8 @@ def book_activities_view(request):
 def popular_books_view(request):
     # Get popular books based on loan count
     popular_books = Book.objects.annotate(
-        loan_count=Count('loans'),
-        rating_avg=Avg('reviews__rating')
-    ).order_by('-loan_count', '-rating_avg')[:20]
+        loan_count=Count('loans')
+    ).order_by('-loan_count')[:20]
     
     context = {
         'popular_books': popular_books,
@@ -109,7 +108,7 @@ def popular_books_view(request):
 def overdue_loans_view(request):
     # Get all overdue loans
     overdue_loans = BookLoan.objects.filter(
-        returned_date__isnull=True,
+        return_date__isnull=True,
         due_date__lt=timezone.now()
     ).select_related('book', 'user').order_by('due_date')
     

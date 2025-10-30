@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Activities - Library Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .activity-card {
+        transition: transform 0.2s;
+        margin-bottom: 1rem;
+    }
+    .activity-card:hover {
+        transform: translateY(-3px);
+    }
+    .book-cover-small {
+        height: 100px;
+        width: 70px;
+        object-fit: cover;
+    }
+    .activity-badge {
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Recent Book Activities</h2>
+            <p class="text-muted">Track the latest book loans and returns in the library.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            {% for activity in recent_activities %}
+            <div class="card mb-3 activity-card">
+                <div class="row g-0">
+                    <div class="col-md-2 p-2 d-flex align-items-center justify-content-center">
+                        {% if activity.book.cover_image %}
+                        <img src="{{ activity.book.cover_image.url }}" class="img-fluid book-cover-small rounded" alt="{{ activity.book.title }}">
+                        {% else %}
+                        <img src="{% static 'images/default-book-cover.jpg' %}" class="img-fluid book-cover-small rounded" alt="Default Cover">
+                        {% endif %}
+                    </div>
+                    <div class="col-md-10">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title mb-1">
+                                    <a href="{% url 'books:book_detail' activity.book.id %}" class="text-decoration-none">
+                                        {{ activity.book.title }}
+                                    </a>
+                                </h5>
+                                <span class="badge {% if activity.return_date %}bg-success{% else %}bg-primary{% endif %} activity-badge">
+                                    {% if activity.return_date %}Returned{% else %}On Loan{% endif %}
+                                </span>
+                            </div>
+                            <p class="card-text text-muted small mb-1">
+                                <strong>Borrowed by:</strong> {{ activity.user.get_full_name|default:activity.user.username }}
+                            </p>
+                            <p class="card-text text-muted small mb-1">
+                                <strong>Issued on:</strong> {{ activity.issue_date|date:"M d, Y H:i" }}
+                                {% if activity.return_date %}
+                                <br><strong>Returned on:</strong> {{ activity.return_date|date:"M d, Y H:i" }}
+                                {% else %}
+                                <br><strong>Due on:</strong> {{ activity.due_date|date:"M d, Y" }}
+                                {% endif %}
+                            </p>
+                            {% if activity.notes %}
+                            <p class="card-text"><small class="text-muted">{{ activity.notes }}</small></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-info">
+                No recent activities found.
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Activity Summary</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Total Activities
+                            <span class="badge bg-primary rounded-pill">{{ recent_activities|length }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Currently On Loan
+                            <span class="badge bg-warning text-dark rounded-pill">
+                                {{ recent_activities|length|default:0 }}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Any additional JavaScript can go here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any interactive elements here
+    });
+</script>
+{% endblock %}

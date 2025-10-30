@@ -1,207 +1,123 @@
-{% extends 'base.html' %}{% extends 'base.html' %}
-
-
-
-{% block title %}Profile{% endblock %}{% block title %}Profile{% endblock %}
-
-
-
-{% block content %}{% block content %}
-
-<div class="container mt-5"><div class="container mt-5">
-
-    <div class="row justify-content-center">    <div class="row justify-content-center">
-
-        <div class="col-md-8">        <div class="col-md-8">
-
-            <div class="card">            <div class="card">
-
-                <div class="card-header d-flex justify-content-between align-items-center">                <div class="card-header d-flex justify-content-between align-items-center">
-
-                    <h4 class="mb-0">My Profile</h4>                    <h4 class="mb-0">My Profile</h4>
-
-                    <a href="{% url 'accounts:password_change' %}" class="btn btn-secondary btn-sm">                    <a href="{% url 'accounts:password_change' %}" class="btn btn-secondary btn-sm">
-
-                        <i class="fas fa-key"></i> Change Password                        <i class="fas fa-key"></i> Change Password
-
-                    </a>                    </a>
-
-                </div>                </div>
-
-                <div class="card-body">                <div class="card-body">
-
-                    {% if messages %}                    {% if messages %}
-
-                        {% for message in messages %}                        {% for message in messages %}
-
-                            <div class="alert alert-{{ message.tags }}">                            <div class="alert alert-{{ message.tags }}">
-
-                                {{ message }}                                {{ message }}
-
-                            </div>                            </div>
-
-                        {% endfor %}                        {% endfor %}
-
-                    {% endif %}                    {% endif %}
-
-
-
-                    <form method="post" enctype="multipart/form-data">                    <form method="post" enctype="multipart/form-data">
-
-                        {% csrf_token %}                        {% csrf_token %}
-
-                                                
-
-                        <div class="row">                        <div class="row">
-
-                            <div class="col-md-4">                            <div class="col-md-4">
-
-                                {% if user.profile_image %}                                {% if user.profile_image %}
-
-                                    <img src="{{ user.profile_image.url }}" alt="Profile Image" class="img-fluid rounded mb-3">                                    <img src="{{ user.profile_image.url }}" alt="Profile Image" class="img-fluid rounded mb-3">
-
-                                {% else %}                                {% else %}
-
-                                    <div class="text-center mb-3">                                    <div class="text-center mb-3">
-
-                                        <i class="fas fa-user-circle fa-8x text-secondary"></i>                                        <i class="fas fa-user-circle fa-8x text-secondary"></i>
-
-                                    </div>                                    </div>
-
-                                {% endif %}                                {% endif %}
-
-                            </div>                            </div>
-
-                                                        
-
-                            <div class="col-md-8">                            <div class="col-md-8">
-
-                                {% for field in form %}                                {% for field in form %}
-
-                                    <div class="form-group mt-3">                                    <div class="form-group mt-3">
-
-                                        {{ field.label_tag }}                                        {{ field.label_tag }}
-
-                                        {{ field|add_class:"form-control" }}                                        {{ field|add_class:"form-control" }}
-
-                                        {% if field.help_text %}                                        {% if field.help_text %}
-
-                                            <small class="form-text text-muted">{{ field.help_text }}</small>                                            <small class="form-text text-muted">{{ field.help_text }}</small>
-
-                                        {% endif %}                                        {% endif %}
-
-                                        {% for error in field.errors %}                                        {% for error in field.errors %}
-
-                                            <div class="invalid-feedback d-block">                                            <div class="invalid-feedback d-block">
-
-                                                {{ error }}                                                {{ error }}
-
-                                            </div>                                            </div>
-
-                                        {% endfor %}                                        {% endfor %}
-
-                                    </div>                                    </div>
-
-                                {% endfor %}                                {% endfor %}
-
-                            </div>                            </div>
-
-                        </div>                        </div>
-
-
-
-                        <div class="mt-4">                        <div class="mt-4">
-
-                            <button type="submit" class="btn btn-primary">                            <button type="submit" class="btn btn-primary">
-
-                                <i class="fas fa-save"></i> Update Profile                                <i class="fas fa-save"></i> Update Profile
-
-                            </button>                            </button>
-
-                        </div>                        </div>
-
-                    </form>                    </form>
-
-                </div>                </div>
-
-            </div>            </div>
-
-
-
-            <!-- Recent Activity -->            <!-- Recent Activity -->
-
-            <div class="card mt-4">            <div class="card mt-4">
-
-                <div class="card-header">                <div class="card-header">
-
-                    <h5 class="mb-0">Recent Activity</h5>                    <h5 class="mb-0">Recent Activity</h5>
-
-                </div>                </div>
-
-                <div class="card-body">                <div class="card-body">
-
-                    <h6>Current Loans</h6>                    <h6>Current Loans</h6>
-
-                    {% if active_loans %}                    {% if active_loans %}
-
-                        <ul class="list-group mb-3">                        <ul class="list-group mb-3">
-
-                            {% for loan in active_loans %}                            {% for loan in active_loans %}
-
-                                <li class="list-group-item d-flex justify-content-between align-items-center">                                <li class="list-group-item d-flex justify-content-between align-items-center">
-
-                                    {{ loan.book.title }}                                    {{ loan.book.title }}
-
-                                    <span class="badge bg-primary">Due: {{ loan.due_date }}</span>                                    <span class="badge bg-primary">Due: {{ loan.due_date }}</span>
-
-                                </li>                                </li>
-
-                            {% endfor %}                            {% endfor %}
-
-                        </ul>                        </ul>
-
-                    {% else %}                    {% else %}
-
-                        <p class="text-muted">No active loans</p>                        <p class="text-muted">No active loans</p>
-
-                    {% endif %}                    {% endif %}
-
-
-
-                    <h6>Outstanding Fines</h6>                    <h6>Outstanding Fines</h6>
-
-                    {% if pending_fines %}                    {% if pending_fines %}
-
-                        <ul class="list-group">                        <ul class="list-group">
-
-                            {% for fine in pending_fines %}                            {% for fine in pending_fines %}
-
-                                <li class="list-group-item d-flex justify-content-between align-items-center">                                <li class="list-group-item d-flex justify-content-between align-items-center">
-
-                                    {{ fine.reason }}                                    {{ fine.reason }}
-
-                                    <span class="badge bg-warning text-dark">${{ fine.amount }}</span>                                    <span class="badge bg-warning text-dark">${{ fine.amount }}</span>
-
-                                </li>                                </li>
-
-                            {% endfor %}                            {% endfor %}
-
-                        </ul>                        </ul>
-
-                    {% else %}                    {% else %}
-
-                        <p class="text-muted">No outstanding fines</p>                        <p class="text-muted">No outstanding fines</p>
-
-                    {% endif %}                    {% endif %}
-
-                </div>                </div>
-
-            </div>            </div>
-
-        </div>        </div>
-
-    </div>    </div>
-
-</div></div>
-
-{% endblock %}{% endblock %}
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">My Profile</h4>
+                    <a href="{% url 'accounts:password_change' %}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-key"></i> Change Password
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-4">
+                                {% if user.profile_image %}
+                                    <img src="{{ user.profile_image.url }}" alt="Profile Image" class="img-fluid rounded mb-3">
+                                {% else %}
+                                    <div class="text-center mb-3">
+                                        <i class="fas fa-user-circle fa-8x text-secondary"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-8">
+                                {% for field in form %}
+                                    <div class="form-group mt-3">
+                                        {{ field.label_tag }}
+                                        {{ field|add_class:"form-control" }}
+                                        {% if field.help_text %}
+                                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                                        {% endif %}
+                                        {% for error in field.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ error }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Recent Activity -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Current Loans</h6>
+                    {% if active_loans %}
+                        <ul class="list-group mb-3">
+                            {% for loan in active_loans %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ loan.book.title }}
+                                    <span class="badge bg-primary">Due: {{ loan.due_date|date:"M d, Y" }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No active loans</p>
+                    {% endif %}
+                    
+                    <h6 class="mt-4">Outstanding Fines</h6>
+                    {% if outstanding_fines %}
+                        <ul class="list-group mb-3">
+                            {% for fine in outstanding_fines %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ fine.reason }}
+                                    <span class="badge bg-warning text-dark">${{ fine.amount }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No outstanding fines</p>
+                    {% endif %}
+                    
+                    <h6 class="mt-4">Recent Loan History</h6>
+                    {% if loan_history %}
+                        <ul class="list-group">
+                            {% for loan in loan_history %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <span>{{ loan.book.title }}</span>
+                                        <span class="text-muted">
+                                            {{ loan.issue_date|date:"M d, Y" }} - 
+                                            {% if loan.return_date %}
+                                                {{ loan.return_date|date:"M d, Y" }}
+                                            {% else %}
+                                                Not returned
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No recent loan history</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

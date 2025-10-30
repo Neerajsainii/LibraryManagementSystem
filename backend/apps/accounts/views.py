@@ -105,6 +105,10 @@ def register_view(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            # Specify the authentication backend to use
+            from django.contrib.auth import get_backends
+            backend = 'django.contrib.auth.backends.ModelBackend'
+            user.backend = backend
             login(request, user)
             messages.success(request, 'Registration successful!')
             return redirect('dashboard:dashboard')
@@ -234,24 +238,24 @@ def profile_view(request):
     # Get user's loan statistics
     active_loans = BookLoan.objects.filter(
         user=request.user,
-        returned_date__isnull=True
+        return_date__isnull=True
     ).select_related('book')
     
     loan_history = BookLoan.objects.filter(
         user=request.user,
-        returned_date__isnull=False
-    ).select_related('book').order_by('-returned_date')[:5]
+        return_date__isnull=False
+    ).select_related('book').order_by('-return_date')[:5]
     
     # Get user's fine statistics
     outstanding_fines = Fine.objects.filter(
         user=request.user,
-        paid_date__isnull=True
+        payment_date__isnull=True
     ).select_related('loan', 'loan__book')
     
     paid_fines = Fine.objects.filter(
         user=request.user,
-        paid_date__isnull=False
-    ).select_related('loan', 'loan__book').order_by('-paid_date')[:5]
+        payment_date__isnull=False
+    ).select_related('loan', 'loan__book').order_by('-payment_date')[:5]
     
     context = {
         'form': form,

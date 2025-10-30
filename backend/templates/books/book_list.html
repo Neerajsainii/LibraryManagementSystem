@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Books Catalog - Library Management System{% endblock %}
 
@@ -50,7 +51,10 @@
                         {% for category in categories %}
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="category" value="{{ category.id }}"
-                                   id="category{{ category.id }}" {% if category.id|stringformat:"i" in request.GET.getlist('category') %}checked{% endif %}>
+                                   id="category{{ category.id }}" 
+                                   {% if request.GET.category %}
+                                       {% if category.id|stringformat:'i' in request.GET.category %}checked{% endif %}
+                                   {% endif %}>
                             <label class="form-check-label" for="category{{ category.id }}">
                                 {{ category.name }}
                             </label>

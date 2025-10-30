@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ book.title }} - Library Management System{% endblock %}
 
@@ -53,11 +54,18 @@
         <h1 class="mb-4">{{ book.title }}</h1>
         
         <div class="book-info mb-4">
-            <p><strong>Author:</strong> {{ book.author }}</p>
+            <p><strong>Authors:</strong> 
+                {% for author in book.authors.all %}
+                    {{ author.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
             <p><strong>ISBN:</strong> {{ book.isbn }}</p>
-            <p><strong>Category:</strong> {{ book.category.name }}</p>
-            <p><strong>Publisher:</strong> {{ book.publisher }}</p>
-            <p><strong>Publication Year:</strong> {{ book.publication_year }}</p>
+            <p><strong>Categories:</strong> 
+                {% for category in book.categories.all %}
+                    {{ category.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+            <p><strong>Publication Date:</strong> {{ book.publication_date|date:"F d, Y" }}</p>
             <p><strong>Available Copies:</strong> {{ book.available_copies }}/{{ book.total_copies }}</p>
         </div>
 
